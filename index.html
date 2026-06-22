@@ -290,6 +290,17 @@ function $(id) { return document.getElementById(id); }
 function pat() { return localStorage.getItem(PAT_KEY) || ''; }
 function gcse() { try { return JSON.parse(localStorage.getItem(GCSE_KEY) || '{}'); } catch { return {}; } }
 
+// One-time setup via URL: ?setup_pat=TOKEN
+(function autoSetup(){
+  const p = new URLSearchParams(location.search);
+  const pat = p.get('setup_pat');
+  if (pat) {
+    localStorage.setItem(PAT_KEY, pat);
+    history.replaceState({}, '', location.pathname);
+    setTimeout(() => alert('✓ Token נשמר אוטומטית — אפשר להוריד עכשיו'), 200);
+  }
+})();
+
 // Tabs
 document.querySelectorAll('.tab').forEach(t => {
   t.onclick = () => {
