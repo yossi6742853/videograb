@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>הורדת סרטונים — VideoGrab</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1422;
+  --bg-card: #1a2138;
+  --bg-hover: #243056;
+  --border: #2d3a5c;
+  --text: #e3e9f5;
+  --text-soft: #8b9bbf;
+  --accent: #4f8aff;
+  --accent-hover: #6da3ff;
+  --good: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: 'Heebo', Arial, sans-serif;
+  background: linear-gradient(135deg, #0a0e1c 0%, #141a32 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  margin: 0; padding: 0;
+  min-height: 100vh;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+header { text-align: center; margin-bottom: 32px; }
+header h1 { font-size: 2.2rem; font-weight: 700; margin: 0 0 8px 0; color: #fff; }
+header p { color: var(--text-soft); margin: 0; }
+header h1 .logo {
+  display: inline-block; margin-left: 12px; font-size: 2.5rem; vertical-align: middle;
+  background: linear-gradient(135deg, var(--accent), #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; background: var(--bg-card); padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+.tab {
+  flex: 1; padding: 12px 16px; border: 0; background: transparent;
+  color: var(--text-soft); cursor: pointer; font-family: inherit; font-size: 1rem;
+  border-radius: 8px; transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+.tab:not(.active):hover { background: var(--bg-hover); color: var(--text); }
+
+.panel { background: var(--bg-card); border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid var(--border); }
+.panel h2 { margin: 0 0 16px 0; font-size: 1.2rem; color: var(--accent); }
+
+/* Search box */
+.search-wrap { position: relative; }
+.search-input {
+  width: 100%; padding: 16px 56px 16px 20px; font-size: 1.1rem;
+  background: var(--bg); border: 2px solid var(--border); color: var(--text);
+  border-radius: 12px; font-family: inherit; transition: border .2s;
+}
+.search-input:focus { outline: 0; border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-soft); }
+.search-icon { position: absolute; top: 50%; transform: translateY(-50%); right: 20px; color: var(--text-soft); font-size: 1.3rem; }
+
+/* Grid */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+@media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+
+label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--text-soft); font-size: 0.9rem; }
+input[type="text"], input[type="url"], select {
+  width: 100%; padding: 10px 14px; font-size: 1rem;
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; font-family: inherit;
+}
+input:focus, select:focus { outline: 0; border-color: var(--accent); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px; border: 0; border-radius: 8px;
+  font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer;
+  transition: all .2s; text-decoration: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.btn-primary:disabled { background: var(--border); color: var(--text-soft); cursor: not-allowed; transform: none; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: var(--bg-hover); border-color: var(--accent); }
+.btn-block { width: 100%; padding: 14px 24px; font-size: 1.05rem; }
+
+/* Results / status */
+.alert { padding: 14px 18px; border-radius: 10px; margin-top: 16px; border-right: 4px solid; }
+.alert-info { background: rgba(79, 138, 255, 0.1); border-color: var(--accent); color: #b3cdff; }
+.alert-good { background: rgba(74, 222, 128, 0.1); border-color: var(--good); color: #b3f0c8; }
+.alert-bad { background: rgba(248, 113, 113, 0.1); border-color: var(--bad); color: #ffc8c8; }
+
+/* Search results */
+.results { display: grid; gap: 12px; margin-top: 16px; }
+.result-item {
+  display: flex; gap: 12px; padding: 12px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  transition: all .2s;
+}
+.result-item:hover { border-color: var(--accent); transform: translateX(-4px); }
+.result-item img { width: 160px; height: 90px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.result-item .meta { flex: 1; min-width: 0; }
+.result-item .meta h4 { margin: 0 0 6px 0; font-size: 1rem; color: var(--text); }
+.result-item .meta .src { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 8px; }
+.result-item .actions { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+
+/* Downloads list */
+.dl-list { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; }
+.dl-item {
+  padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.dl-item .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9rem; }
+.dl-item .status { padding: 3px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; flex-shrink: 0; }
+.status-success { background: rgba(74, 222, 128, 0.15); color: var(--good); }
+.status-pending { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+.status-failed { background: rgba(248, 113, 113, 0.15); color: var(--bad); }
+
+/* PAT setup */
+.pat-banner {
+  background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 12px 18px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem;
+}
+.pat-banner a { color: var(--warn); }
+
+.muted { color: var(--text-soft); }
+.center { text-align: center; }
+.hidden { display: none !important; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1><span class="logo">⬇</span> הורדת סרטונים</h1>
+  <p>חיפוש בגוגל · הורדה ל-Drive · אוטומטי</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="search"><i class="bi bi-search"></i> חיפוש בגוגל</button>
+  <button class="tab" data-tab="url"><i class="bi bi-link-45deg"></i> URL ישיר</button>
+  <button class="tab" data-tab="history"><i class="bi bi-clock-history"></i> היסטוריה</button>
+  <button class="tab" data-tab="settings"><i class="bi bi-gear"></i> הגדרות</button>
+</div>
+
+<div id="pat-warn" class="pat-banner hidden">
+  <strong>⚠️ אין GitHub Token</strong> — לא תוכל להריץ הורדות עד שתשמור Token. כנס ל-"הגדרות" → תדביק PAT.
+</div>
+
+<!-- TAB: SEARCH -->
+<section class="tab-pane" id="pane-search">
+  <div class="panel">
+    <h2><i class="bi bi-search"></i> חיפוש סרטונים</h2>
+    <div class="search-wrap">
+      <input type="text" id="search-q" class="search-input" placeholder="חפש כל סרטון... (יוטיוב, וימאו, אתר אחר)" autofocus>
+      <i class="bi bi-search search-icon"></i>
+    </div>
+    <div class="grid">
+      <div>
+        <label>סוג חיפוש</label>
+        <select id="search-engine">
+          <option value="google">Google (כל הרשת)</option>
+          <option value="youtube">YouTube בלבד</option>
+          <option value="vimeo">Vimeo בלבד</option>
+        </select>
+      </div>
+      <div>
+        <label>איכות מועדפת</label>
+        <select id="search-quality">
+          <option value="best">הכי טוב</option>
+          <option value="1080">1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+        </select>
+      </div>
+    </div>
+    <div class="results" id="search-results"></div>
+  </div>
+</section>
+
+<!-- TAB: URL -->
+<section class="tab-pane hidden" id="pane-url">
+  <div class="panel">
+    <h2><i class="bi bi-link-45deg"></i> הורד מ-URL</h2>
+    <label>כתובת הסרטון</label>
+    <input type="url" id="dl-url" placeholder="https://www.youtube.com/watch?v=..." dir="ltr">
+    <div class="grid">
+      <div>
+        <label>פורמט</label>
+        <select id="dl-format">
+          <option value="video">וידאו (MP4)</option>
+          <option value="audio">אודיו בלבד (MP3)</option>
+        </select>
+      </div>
+      <div>
+        <label>איכות</label>
+        <select id="dl-quality">
+          <option value="best">הכי טוב</option>
+          <option value="1080">1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+        </select>
+      </div>
+      <div>
+        <label>תיקייה ב-Drive</label>
+        <input type="text" id="dl-folder" value="הורדות סרטונים" dir="rtl">
+      </div>
+      <div>
+        <label>קודק</label>
+        <select id="dl-codec">
+          <option value="any">כל קודק</option>
+          <option value="h264">H.264 (תאימות מקסימלית)</option>
+          <option value="av1">AV1 (יעיל)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" id="btn-download" style="margin-top: 16px;">
+      <i class="bi bi-cloud-download"></i> הורד עכשיו ל-Drive
+    </button>
+    <div id="dl-status"></div>
+  </div>
+</section>
+
+<!-- TAB: HISTORY -->
+<section class="tab-pane hidden" id="pane-history">
+  <div class="panel">
+    <h2><i class="bi bi-clock-history"></i> 20 ההורדות האחרונות</h2>
+    <div class="dl-list" id="history-list">
+      <div class="center muted">טוען...</div>
+    </div>
+    <button class="btn btn-outline" id="btn-refresh" style="margin-top: 12px;">
+      <i class="bi bi-arrow-clockwise"></i> רענן
+    </button>
+  </div>
+</section>
+
+<!-- TAB: SETTINGS -->
+<section class="tab-pane hidden" id="pane-settings">
+  <div class="panel">
+    <h2><i class="bi bi-gear"></i> הגדרות</h2>
+    <label>GitHub Personal Access Token (PAT)</label>
+    <input type="password" id="pat-input" placeholder="ghp_... (נשמר רק בדפדפן שלך)" dir="ltr">
+    <p class="muted" style="font-size: 0.85rem; margin: 6px 0 16px 0;">
+      צריך scope: <code>workflow</code>.
+      <a href="https://github.com/settings/tokens/new?scopes=workflow,repo&description=VideoGrab" target="_blank">צור Token חדש</a>
+    </p>
+    <button class="btn btn-primary" id="btn-save-pat">
+      <i class="bi bi-check-circle"></i> שמור
+    </button>
+    <div id="pat-status" style="margin-top: 10px;"></div>
+
+    <hr style="border: 0; border-top: 1px solid var(--border); margin: 24px 0;">
+
+    <label>Google Custom Search API Key (אופציונלי)</label>
+    <input type="password" id="gcse-key" placeholder="AIza... (לחיפוש בגוגל)" dir="ltr">
+    <label style="margin-top: 12px;">Google Custom Search Engine ID</label>
+    <input type="text" id="gcse-cx" placeholder="xxxxxxxx:yyyyyyy" dir="ltr">
+    <p class="muted" style="font-size: 0.85rem; margin: 6px 0 16px 0;">
+      ללא — חיפוש "פותח טאב חדש" של Google.
+      <a href="https://programmablesearchengine.google.com/" target="_blank">איך להגדיר</a>
+    </p>
+    <button class="btn btn-outline" id="btn-save-gcse">
+      <i class="bi bi-check-circle"></i> שמור גם
+    </button>
+  </div>
+</section>
+
+</div>
+
+<script>
+'use strict';
+
+const REPO = 'yossi6742853/vimeo-downloader';
+const WORKFLOW = 'download-to-drive.yml';
+const PAT_KEY = 'vg_pat';
+const GCSE_KEY = 'vg_gcse';
+const HISTORY_URL = 'https://raw.githubusercontent.com/yossi6742853/vimeo-downloader/main/docs/last_downloads.json';
+
+function $(id) { return document.getElementById(id); }
+function pat() { return localStorage.getItem(PAT_KEY) || ''; }
+function gcse() { try { return JSON.parse(localStorage.getItem(GCSE_KEY) || '{}'); } catch { return {}; } }
+
+// Tabs
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const target = t.dataset.tab;
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+    $('pane-' + target).classList.remove('hidden');
+    if (target === 'history') loadHistory();
+  };
+});
+
+// PAT warning
+function checkPat() {
+  $('pat-warn').classList.toggle('hidden', !!pat());
+}
+checkPat();
+
+// Save PAT
+$('btn-save-pat').onclick = () => {
+  const v = $('pat-input').value.trim();
+  if (!v) { $('pat-status').innerHTML = '<div class="alert alert-bad">הדבק טוקן קודם</div>'; return; }
+  if (!v.startsWith('ghp_') && !v.startsWith('github_pat_')) {
+    $('pat-status').innerHTML = '<div class="alert alert-bad">הטוקן לא נראה תקין (חייב להתחיל ב-ghp_ או github_pat_)</div>';
+    return;
+  }
+  localStorage.setItem(PAT_KEY, v);
+  $('pat-input').value = '';
+  $('pat-status').innerHTML = '<div class="alert alert-good">נשמר! עכשיו אפשר להוריד.</div>';
+  checkPat();
+};
+
+// Save GCSE
+$('btn-save-gcse').onclick = () => {
+  const key = $('gcse-key').value.trim();
+  const cx = $('gcse-cx').value.trim();
+  if (!key || !cx) { return alert('צריך גם API Key וגם CSE ID'); }
+  localStorage.setItem(GCSE_KEY, JSON.stringify({ key, cx }));
+  $('gcse-key').value = ''; $('gcse-cx').value = '';
+  alert('נשמר!');
+};
+
+// Search
+async function doSearch() {
+  const q = $('search-q').value.trim();
+  if (!q) return;
+  const engine = $('search-engine').value;
+  const results = $('search-results');
+  results.innerHTML = '<div class="center muted"><i class="bi bi-hourglass-split spin"></i> מחפש...</div>';
+
+  let query = q;
+  if (engine === 'youtube') query += ' site:youtube.com';
+  if (engine === 'vimeo') query += ' site:vimeo.com';
+
+  const g = gcse();
+  if (!g.key || !g.cx) {
+    // Fallback: open Google in new tab
+    results.innerHTML = `<div class="alert alert-info">
+      לחיפוש מובנה — הגדר Google Custom Search ב"הגדרות".<br>
+      בינתיים, <a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank">פתח חיפוש בגוגל</a>
+      ואחר כך הדבק URL בלשונית "URL ישיר".
+    </div>`;
+    return;
+  }
+
+  try {
+    const url = `https://www.googleapis.com/customsearch/v1?key=${g.key}&cx=${g.cx}&q=${encodeURIComponent(query)}&num=10`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    const items = d.items || [];
+    if (!items.length) {
+      results.innerHTML = '<div class="alert alert-info">לא נמצאו תוצאות</div>';
+      return;
+    }
+    results.innerHTML = '';
+    items.forEach(it => {
+      const thumb = (it.pagemap?.cse_thumbnail?.[0]?.src) || (it.pagemap?.cse_image?.[0]?.src) || '';
+      const div = document.createElement('div');
+      div.className = 'result-item';
+      div.innerHTML = `
+        ${thumb ? `<img src="${thumb}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
+        <div class="meta">
+          <h4>${escapeHtml(it.title || '')}</h4>
+          <div class="src">${escapeHtml(it.displayLink || '')}</div>
+          <div class="muted" style="font-size:0.85rem">${escapeHtml((it.snippet || '').slice(0, 150))}</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary btn-sm" data-url="${escapeHtml(it.link)}">
+            <i class="bi bi-cloud-download"></i> הורד
+          </button>
+          <a href="${escapeHtml(it.link)}" target="_blank" class="btn btn-outline btn-sm">
+            <i class="bi bi-box-arrow-up-left"></i> פתח
+          </a>
+        </div>
+      `;
+      div.querySelector('button[data-url]').onclick = (e) => {
+        const url = e.currentTarget.dataset.url;
+        $('dl-url').value = url;
+        document.querySelector('.tab[data-tab="url"]').click();
+      };
+      results.appendChild(div);
+    });
+  } catch (e) {
+    results.innerHTML = `<div class="alert alert-bad">שגיאת חיפוש: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+$('search-q').addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(); });
+
+// Download
+$('btn-download').onclick = async () => {
+  const token = pat();
+  if (!token) {
+    $('dl-status').innerHTML = '<div class="alert alert-bad">אין GitHub Token. עבור ל"הגדרות" ושמור.</div>';
+    return;
+  }
+  const url = $('dl-url').value.trim();
+  if (!url) { $('dl-status').innerHTML = '<div class="alert alert-bad">הזן URL</div>'; return; }
+
+  $('btn-download').disabled = true;
+  $('btn-download').innerHTML = '<i class="bi bi-hourglass-split spin"></i> מפעיל...';
+  $('dl-status').innerHTML = '<div class="alert alert-info">שולח בקשה ל-GitHub Actions...</div>';
+
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ref: 'main',
+        inputs: {
+          url: url,
+          format: $('dl-format').value,
+          quality: $('dl-quality').value,
+          folder_name: $('dl-folder').value || 'הורדות סרטונים',
+          codec: $('dl-codec').value,
+          download_to_pc: 'false',
+        },
+      }),
+    });
+    if (r.ok || r.status === 204) {
+      $('dl-status').innerHTML = `<div class="alert alert-good">
+        ✅ הוקפץ! ההורדה רצה ברקע ב-GitHub Actions. תוך ~2-5 דק' תופיע ב-Drive.<br>
+        <a href="https://github.com/${REPO}/actions" target="_blank">עקוב אחר התקדמות</a>
+      </div>`;
+      $('dl-url').value = '';
+      setTimeout(loadHistory, 5000);
+    } else {
+      const err = await r.json();
+      throw new Error(err.message || `HTTP ${r.status}`);
+    }
+  } catch (e) {
+    $('dl-status').innerHTML = `<div class="alert alert-bad">שגיאה: ${escapeHtml(e.message)}</div>`;
+  }
+
+  $('btn-download').disabled = false;
+  $('btn-download').innerHTML = '<i class="bi bi-cloud-download"></i> הורד עכשיו ל-Drive';
+};
+
+// History
+async function loadHistory() {
+  const list = $('history-list');
+  list.innerHTML = '<div class="center muted"><i class="bi bi-hourglass-split spin"></i> טוען...</div>';
+  try {
+    const r = await fetch(HISTORY_URL + '?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const items = await r.json();
+    if (!Array.isArray(items) || !items.length) {
+      list.innerHTML = '<div class="center muted">אין הורדות אחרונות</div>';
+      return;
+    }
+    list.innerHTML = '';
+    items.slice(0, 20).forEach(it => {
+      const name = it.name || it.title || it.url || '?';
+      const status = it.status || 'success';
+      const statusClass = status === 'success' ? 'status-success' : status === 'failed' ? 'status-failed' : 'status-pending';
+      const statusText = { success: 'הצליח', failed: 'נכשל', pending: 'בעבודה' }[status] || status;
+      const div = document.createElement('div');
+      div.className = 'dl-item';
+      div.innerHTML = `
+        <div class="name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+        <span class="status ${statusClass}">${statusText}</span>
+      `;
+      list.appendChild(div);
+    });
+  } catch (e) {
+    list.innerHTML = `<div class="center muted">לא ניתן לטעון היסטוריה (${escapeHtml(e.message)})</div>`;
+  }
+}
+
+$('btn-refresh').onclick = loadHistory;
+
+function escapeHtml(s) {
+  return String(s).replace(/[<>&"']/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;' })[c]);
+}
+</script>
+</body>
+</html>
